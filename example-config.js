@@ -11,3 +11,8 @@ pattern = {}
 output = function(results) {
   results.map( r => console.log(r._id) )
 }
+
+returnoutput = function(results) {
+  return results.length
+}
+
