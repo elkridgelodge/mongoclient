@@ -48,3 +48,5 @@ function step(p, o, d) {
     }).done()
   })
 }
+
+step(pattern, output)
