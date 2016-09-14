@@ -22,18 +22,17 @@ if(!program.args.length) {
     program.help()
 }
 
-process.stdin.resume()
-process.stdin.setEncoding('utf8')
-process.stdin.on('data', function(data) {
-  process.stdout.write(data)
-})
-
-
 var client = new Database(Driver, database)
 
 var lineperids = []
 
-function step(p, o) {
+process.stdin.resume()
+process.stdin.setEncoding('utf8')
+process.stdin.on('data', function(data) {
+  step(pattern, output, data)
+})
+
+function step(p, o, d) {
   eachLine(rootfile, function(line) {
     lineperids.push(line)
   }).then(function() {
@@ -49,5 +48,3 @@ function step(p, o) {
     }).done()
   })
 }
-
-step(pattern, output)
