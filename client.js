@@ -1,36 +1,53 @@
+#!/usr/bin/env node
+
 'use strict'
 
 var config = require('./config')
 
+var program = require('commander')
+var Promise = require('bluebird')
 var Mongo = require('poseidon-mongo')
 var Driver = new Mongo.Driver()
 var Database = Mongo.Database
-var fs = require('fs')
-
+var lineReader = require('line-reader')
+var eachLine = Promise.promisify(lineReader.eachLine)
 Driver.configure(connection, { hosts: hosts, database: database })
+
+program
+    .version('0.0.1')
+    .usage('<keywords>')
+    .parse(process.argv)
+
+if(!program.args.length) {
+    program.help()
+}
+
+process.stdin.resume()
+process.stdin.setEncoding('utf8')
+process.stdin.on('data', function(data) {
+  process.stdout.write(data)
+})
+
 
 var client = new Database(Driver, database)
 
-fs.readFile(file, 'utf8',
-  function (err, data) {
-    if (err) {
-      console.log("could not read file")
-    }
-    console.log(data)
-  }
-)
+var lineperids = []
 
 function step(p, o) {
-  client.collection(coll)
-  .then(function(collection){
-    return collection.find(p)
-  }).then(function (cursor) {
-    return cursor.toArray()
-  }).then(function (results) {
-    o(results)
-  }).finally(function () {
-    client.close()
-  }).done()
+  eachLine(rootfile, function(line) {
+    lineperids.push(line)
+  }).then(function() {
+    client.collection(coll)
+    .then(function(collection){
+      return collection.find({_id: {$in: lineperids}})
+    }).then(function (cursor) {
+      return cursor.toArray()
+    }).then(function (results) {
+      o(results)
+    }).finally(function () {
+      client.close()
+    }).done()
+  })
 }
 
-step(pattern, operation)
+step(pattern, output)
