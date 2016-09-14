@@ -19,9 +19,11 @@ program
     .usage('<keywords>')
     .parse(process.argv)
 
+/*
 if(!program.args.length) {
     program.help()
 }
+*/
 
 var client = new Database(Driver, database)
 
@@ -40,9 +42,11 @@ function step(p, o, d) {
   }).then(function() {
     client.collection(coll)
     .then(function(collection){
-      if (d) {
+      if (d && p) {
         //console.error(JSON.parse(d))
         var id_array = JSON.parse(d)
+        p._id = {$in: id_array}
+        return collection.find(p)
         return collection.find({_id: {$in: id_array}})
       }
       else {
