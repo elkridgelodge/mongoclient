@@ -15,6 +15,7 @@ Driver.configure(connection, { hosts: hosts, database: database })
 
 program
     .version('0.0.1')
+    .option('-t, --thread', 'Thread End')
     .usage('<keywords>')
     .parse(process.argv)
 
@@ -29,24 +30,33 @@ var lineperids = []
 process.stdin.resume()
 process.stdin.setEncoding('utf8')
 process.stdin.on('data', function(data) {
-  step(pattern, output, data)
+  step(pattern, output, data).then(function(res) {
+  })
 })
 
 function step(p, o, d) {
-  eachLine(rootfile, function(line) {
+  return eachLine(rootfile, function(line) {
     lineperids.push(line)
   }).then(function() {
     client.collection(coll)
     .then(function(collection){
-      return collection.find({_id: {$in: lineperids}})
+      if (d) {
+        //console.error(JSON.parse(d))
+        var id_array = JSON.parse(d)
+        return collection.find({_id: {$in: id_array}})
+      }
+      else {
+        return collection.find({_id: {$in: lineperids}})
+      }
     }).then(function (cursor) {
       return cursor.toArray()
     }).then(function (results) {
-      o(results)
+      console.log(o(results))
     }).finally(function () {
-      client.close()
+      //client.close()
     }).done()
   })
 }
 
-step(pattern, output)
+step(pattern, output).then(function(res) {
+})
